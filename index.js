@@ -1,5 +1,9 @@
 // import transformURL from "./transformURL.js";
 const transformURL = require("./transformURL.js");
+// import button from "./button.js";
+const myButtons = require("./myButtons.js");
+// import localizing from "./server-language.js";
+const localizing = require("./server-language.js");
 // 필요한 discord.js 클래스를 require합니다.
 const { Client, Events, GatewayIntentBits, Partials, Collection } = require("discord.js");
 require("dotenv").config();
@@ -79,42 +83,61 @@ client.on(Events.MessageCreate, message => {
     
         if (message.content !== result) {
             message.delete();
-            channel.send(message.author.toString() + result)
-                .then(message => {
-                    message.react(`❌`);
-                });
+
+            // 메시지에 버튼 열을 추가하여 전송
+            const myButtonsRow = myButtons(message);
+            channel.send({ content: message.author.toString() + result,
+                           components: [myButtonsRow] });
         }
     } catch(error) {
         console.log(error);
-    }
-    
+    }    
 });
 
+const messageDeleted = {
+    "ko": "임베드가 삭제되었습니다.",
+    "en": "Embed deleted successfully.",
+    "jp": "埋め込みが削除されました。",
+}
+
+const messageDeleteError = {
+    "ko": "임베드 삭제 중 오류가 발생했습니다.",
+    "en": "There was an error trying to delete the embed.",
+    "jp": "埋め込みの削除中にエラーが発生しました。",
+}
+
+const notYourMessage = {
+    "ko": "작성자 본인만 메시지를 삭제할 수 있습니다.",
+    "en": "Only the original author can delete this message.",
+    "jp": "元の作成者のみがこのメッセージを削除できます。",
+}
+
 /**
- * 리액션이 달렸을 때 실행되는 메소드
+ * 삭제 버튼이 클릭됐을 때 실행되는 메소드
  */
-client.on(Events.MessageReactionAdd, (reaction, user) => {
-    if (reaction.emoji.name === '❌') {
-        
-        message = reaction.message;
-        message
-        .fetch()
-        .then(async message => {
-            const messagedUser = await message.mentions.users.first()
-        
-            /**
-             * reaction을 쓰면 안되고 reaction.emoji.name을 써서 비교해야함
-             * custom reaction의 경우 reaction.emoji.id를 가져와서 비교
-             */
-            if (messagedUser === user && message.author.bot) {
-                message.delete();
-            }
-        })
-        .catch(error => {
-            console.error("Something went wrong when fetching the message: ", error);
-        });
+client.on("interactionCreate", async interaction => {
+    // 인터랙션이 삭제 버튼으로 인한 것이 아닌 경우 무시
+    if (!interaction.isButton() || !interaction.customId === "delete") return;
+    
+    const guildId = String(interaction.guild.id);
+    const serverLanguage = localizing.getServerLanguage(guildId);
+    
+    // 인터랙션이 작성자 본인으로 인한 것이 아닌 경우 경고 후 무시
+    // 삭제하려는 메시지는 항상 봇이 작성한 메시지이므로, 원래의 작성자는 메시지에 포함된 멘션으로 취득
+    if (interaction.user != interaction.message.mentions.users.first()) {
+        await interaction.reply({ content: notYourMessage[serverLanguage], ephemeral: true });
+        return;
+    }
+
+    try {
+        await interaction.message.delete();
+        await interaction.reply({ content: messageDeleted[serverLanguage], ephemeral: true });
+    } catch (error) {
+        console.error('Error deleting message:', error);
+        await interaction.reply({ content: messageDeleteError[serverLanguage], ephemeral: true });
     }
 });
+
 
 // 디스코드를 클라이언트의 토큰으로 로그인합니다.
 client.login(token);
