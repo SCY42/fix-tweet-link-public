@@ -6,12 +6,12 @@ const myButtons = require("./myButtons.js");
 const localizing = require("./server-language.js");
 // 필요한 discord.js 클래스를 require합니다.
 const { Client, Events, GatewayIntentBits, Partials, Collection } = require("discord.js");
-require("dotenv").config();
+require("dotenv").config({ path: "../.env" });
 const path = require('path');
 const fs = require('fs');
 
 // bot token을 환경변수 설정으로 받아옴
-const token = process.env.BOT_TOKEN;
+const token = process.env.FIX_TWITTER_TOKEN;
 
 // 새 client 인스턴스를 생성합니다.
 const client = new Client({
