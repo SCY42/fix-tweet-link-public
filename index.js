@@ -87,7 +87,8 @@ client.on(Events.MessageCreate, message => {
             // 메시지에 버튼 열을 추가하여 전송
             const myButtonsRow = myButtons(message);
             channel.send({ content: message.author.toString() + result,
-                           components: [myButtonsRow] });
+                           components: [myButtonsRow],
+                           flags: ["SuppressNotifications"] });
         }
     } catch(error) {
         console.log(error);
