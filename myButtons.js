@@ -16,13 +16,13 @@ const urlLabel = {
 };
 
 
-module.exports = (message) => {
+module.exports = (message, originalURL) => {
 	const guildId = String(message.guild.id);
 	const serverLanguage = localizing.getServerLanguage(guildId);
 	
 	const deleteButton = new ButtonBuilder().setStyle(ButtonStyle.Danger).setCustomId('delete').setLabel(deleteLabel[serverLanguage]).setEmoji("<:trash_bin:1444690753170309351>");
 	deleteButton.add
-	const urlButton = new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(message.content).setLabel(urlLabel[serverLanguage]).setEmoji("<:twitter:1444690751639392317>");
+	const urlButton = new ButtonBuilder().setStyle(ButtonStyle.Link).setURL(originalURL).setLabel(urlLabel[serverLanguage]).setEmoji("<:twitter:1444690751639392317>");
 	const row = new ActionRowBuilder().addComponents(deleteButton, urlButton);
 
 	return row;

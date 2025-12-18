@@ -78,15 +78,17 @@ client.on(Events.MessageCreate, message => {
     try{
         if (message.author.bot) return;
     
-        result = transformURL(message.content, message.guild.id);
+        let result = transformURL(message.content, message.guild.id);
+        let transformedURL = result[0]
+        let originalURL = result[1]
         const channel = client.channels.cache.get(message.channelId);
     
-        if (message.content !== result) {
+        if (message.content !== transformedURL) {
             message.delete();
 
             // 메시지에 버튼 열을 추가하여 전송
-            const myButtonsRow = myButtons(message);
-            channel.send({ content: message.author.toString() + result,
+            const myButtonsRow = myButtons(message, originalURL);
+            channel.send({ content: message.author.toString() + transformedURL,
                            components: [myButtonsRow],
                            flags: ["SuppressNotifications"] });
         }
