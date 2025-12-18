@@ -27,8 +27,9 @@ module.exports = (inputURL, guildId) => {
     }
 
     // 입력된 URL이 "https://x.com" 또는 "https://twitter.com"으로 시작하고, 'status'가 들어간 경우 진입
-    if ((result.startsWith("https://x.com") || result.startsWith("https://twitter.com")) && (result.indexOf('status') !== -1)) {
-        result = result.replace(/^https:\/\/(x\.com|twitter\.com)/, "https://fxtwitter.com") + `)`;
+    const matching = result.match(/^https:\/\/(x\.com|twitter\.com)\/.+\/status\/\d+/)
+    if (matching) {
+        result = matching[0].replace(/^https:\/\/(x\.com|twitter\.com)/, "https://fxtwitter.com") + `)`;
     } else {
         //만약 트위터의 url이 아닌 경우 원본 메세지 반환 
         return inputURL;
