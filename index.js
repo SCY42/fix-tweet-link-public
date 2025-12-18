@@ -9,6 +9,8 @@ const { Client, Events, GatewayIntentBits, Partials, Collection } = require("dis
 require("dotenv").config({ path: "../.env" });
 const path = require('path');
 const fs = require('fs');
+/** 유효한 트위터 url인지를 검사하는 정규 표현식 */
+const validTwitterURL = /^https:\/\/(x\.com|twitter\.com)\/.+\/status\/\d+/
 
 // bot token을 환경변수 설정으로 받아옴
 const token = process.env.FIX_TWITTER_TOKEN;
@@ -77,21 +79,21 @@ client.on(Events.InteractionCreate, async interaction => {
 client.on(Events.MessageCreate, message => {
     try{
         if (message.author.bot) return;
+
+        const originalURL = message.content.match(validTwitterURL)  // match array | null
+        if (!originalURL) return;                                   // is null
     
-        let result = transformURL(message.content, message.guild.id);
-        let transformedURL = result[0]
-        let originalURL = result[1]
+        const isSpoiler = message.content.startsWith("||") && message.content.endsWith("||");
+        const transformedURL = transformURL(originalURL[0], message.guild.id, isSpoiler);
         const channel = client.channels.cache.get(message.channelId);
     
-        if (message.content !== transformedURL) {
-            message.delete();
+        message.delete();
 
-            // 메시지에 버튼 열을 추가하여 전송
-            const myButtonsRow = myButtons(message, originalURL);
-            channel.send({ content: message.author.toString() + transformedURL,
-                           components: [myButtonsRow],
-                           flags: ["SuppressNotifications"] });
-        }
+        // 메시지에 버튼 열을 추가하여 전송
+        const myButtonsRow = myButtons(message, originalURL[0]);
+        channel.send({ content: message.author.toString() + transformedURL,
+                        components: [myButtonsRow],
+                        flags: ["SuppressNotifications"] });
     } catch(error) {
         console.log(error);
     }    
